@@ -17,7 +17,7 @@ async fn main(_spawner: Spawner) {
 
     info!("Initializing the program");
 
-    let mut led = Output::new(p.PIN_13, Level::Low);
+    let mut led = Output::new(p.PIN_15, Level::Low);
 
     loop {
         led.set_high(); // Turn on the LED
