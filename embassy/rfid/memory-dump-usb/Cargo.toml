@@ -1,0 +1,35 @@
+[package]
+name = "blocks-over-usb"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+embassy-executor = { version = "0.9.0", features = [
+    "arch-cortex-m", 
+    "executor-thread", 
+    "executor-interrupt", 
+    
+] }
+embassy-rp = { version = "0.9.0", features = [
+    "unstable-pac", 
+    "time-driver", 
+    "critical-section-impl", 
+    "rp2040",
+    
+]}
+embassy-time = { version = "0.5.0", features = [
+    
+] }
+
+cortex-m = { version = "0.7.6", features = ["inline-asm"] }
+cortex-m-rt = "0.7.0"
+# critical-section = "1.1"
+
+panic-halt = "1.0.0"
+
+mfrc522 = "0.8.0"
+embedded-hal-bus = "0.3.0"
+
+embassy-usb-logger = "0.5.1"
+log = "0.4"
+heapless = "0.9.2"

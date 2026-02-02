@@ -4,11 +4,10 @@
 use embassy_executor::Spawner;
 use embassy_time::Timer;
 
-// defmt Logging
-use defmt::info;
-use defmt_rtt as _;
+use panic_halt as _;
 
-use panic_probe as _;
+// For USB
+use embassy_rp::{peripherals::USB, usb};
 
 // For SPI
 use embassy_rp::spi;
@@ -22,12 +21,23 @@ use embassy_rp::gpio::{Level, Output};
 // Driver for the MFRC522
 use mfrc522::{Mfrc522, comm::blocking::spi::SpiInterface};
 
-// to prepare buffer with data before logging
+// to prepare a buffer for formatted output
 use core::fmt::Write;
 use heapless::String;
 
 // Logger
-use defmt::error;
+use log::error;
+
+embassy_rp::bind_interrupts!(struct Irqs {
+    USBCTRL_IRQ => usb::InterruptHandler<USB>;
+});
+
+#[embassy_executor::task]
+async fn logger_task(usb: embassy_rp::Peri<'static, embassy_rp::peripherals::USB>) {
+    let driver = embassy_rp::usb::Driver::new(usb, Irqs);
+
+    embassy_usb_logger::run!(8192, log::LevelFilter::Info, driver);
+}
 
 fn read_sector<E, COMM>(
     uid: &mfrc522::Uid,
@@ -57,7 +67,7 @@ where
         // Printing block type
         let block_type = get_block_type(sector, rel_block);
 
-        defmt::println!(
+        log::info!(
             "BLOCK {} (REL: {}) | {} | {}",
             abs_block,
             rel_block,
@@ -67,7 +77,7 @@ where
 
         buff.clear();
     }
-    defmt::println!("");
+    log::info!("");
     Ok(())
 }
 
@@ -83,7 +93,7 @@ where
         // Printing the Sector number
         write!(buff, "-----------SECTOR {}-----------", sector)
             .expect("failed to write into heapless buff");
-        defmt::println!("{}", buff);
+        log::info!("{}", buff);
         buff.clear();
 
         read_sector(uid, sector, rfid)?;
@@ -100,10 +110,11 @@ fn get_block_type(sector: u8, rel_block: u8) -> &'static str {
 }
 
 #[embassy_executor::main]
-async fn main(_spawner: Spawner) {
+async fn main(spawner: Spawner) {
     let p = embassy_rp::init(Default::default());
 
-    info!("Initializing the program");
+    spawner.must_spawn(logger_task(p.USB));
+    Timer::after_secs(3).await;
 
     let miso = p.PIN_0;
     let cs_pin = Output::new(p.PIN_1, Level::High);
@@ -115,7 +126,6 @@ async fn main(_spawner: Spawner) {
 
     let spi_bus = Spi::new_blocking(p.SPI0, clk, mosi, miso, config);
     let spi = ExclusiveDevice::new(spi_bus, cs_pin, Delay).expect("Failed to get exclusive device");
-
     let itf = SpiInterface::new(spi);
     let mut rfid = Mfrc522::new(itf)
         .init()
