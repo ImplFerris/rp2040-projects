@@ -1,0 +1,37 @@
+[package]
+name = "read-blocks"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+embassy-executor = { version = "0.9.0", features = [
+    "arch-cortex-m",
+    "executor-thread",
+    "executor-interrupt",
+    "defmt",
+] }
+embassy-rp = { version = "0.9.0", features = [
+    "unstable-pac",
+    "time-driver",
+    "critical-section-impl",
+    "rp2040",
+    "defmt",
+] }
+embassy-time = { version = "0.5.0", features = [
+    "defmt-timestamp-uptime",
+    "defmt",
+] }
+
+cortex-m = { version = "0.7.6", features = ["inline-asm"] }
+cortex-m-rt = "0.7.0"
+# critical-section = "1.1"
+
+# defmt Logging
+defmt = "1.0.1"
+defmt-rtt = "1.1.0"
+
+panic-probe = { version = "1.0.0", features = ["print-defmt"] }
+
+mfrc522 = "0.8.0"
+embedded-hal-bus = "0.3.0"
+heapless = { version = "0.9.2", features = ["defmt"] }
