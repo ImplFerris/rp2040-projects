@@ -18,12 +18,6 @@ use embassy_rp::peripherals::PIO0;
 use embassy_rp::pio::{InterruptHandler, Pio};
 use embassy_rp::pio_programs::ws2812::{PioWs2812, PioWs2812Program};
 
-/// Color orders for WS2812B, type RGB8
-pub trait RgbColorOrder {
-    /// Pack an 8-bit RGB color into a u32
-    fn pack(color: RGB8) -> u32;
-}
-
 bind_interrupts!(struct Irqs {
     PIO0_IRQ_0 => InterruptHandler<PIO0>;
 });
